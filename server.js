@@ -3,8 +3,9 @@ const app = express()
 const cors = require('cors')
 require('dotenv').config()
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-await mongoose.connect(process.env.BD_URI, {
+mongoose.connect(process.env.BD_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useFindAndModify: false,
@@ -27,6 +28,10 @@ const User = mongoose.model('User', new Schema({
 }));
 
 app.post('/api/exercise/new-user', (req, res) => {
+  console.log(req.body);
+
+  // let newUser = new User({
+  // });
 
 });
 
