@@ -15,23 +15,21 @@ app.get('/', (req, res) => {
 app.use(express.urlencoded())
 app.use(express.json())
 
+const exerciseSchema = new Schema({
+  date: String,
+  duration: {type: Number, required: true},
+  description: {type: String, required: true}
+})
+
 const User = mongoose.model('User', new Schema({
-  username: String,
-  date: Date,
-  duration: Number,
-  description: String
+  username: {type: String, required: true},
+  log: [exerciseSchema]
 }));
+
+const Exercise = mongoose.model('Exercise', exerciseSchema)
 
 app.post('/api/exercise/new-user', (req, res) => {
   let username =  req.body.username;
-
-  // User.deleteMany({username: username}, (error, result) => {
-  //   if(error) {
-  //     console.log(error);
-  //   } else {
-  //     res.json(result);
-  //   }
-  // })
 
   User.findOne({username: username}, (error, result) => {
     if(error) {
@@ -39,10 +37,7 @@ app.post('/api/exercise/new-user', (req, res) => {
     }
     else if (result == null) {
       let newUser = new User({
-        username: username,
-        date: "",
-        duration: 0,
-        description: ""
+        username: username
       });
     
       newUser.save((error, doc) => {
@@ -57,8 +52,8 @@ app.post('/api/exercise/new-user', (req, res) => {
         }
       });
     } else {
-      res.json(result);
-      // res.send('Username already taken');
+      // res.json(result);
+      res.send('Username already taken');
     }
   });
 
@@ -66,31 +61,44 @@ app.post('/api/exercise/new-user', (req, res) => {
 
 app.post('/api/exercise/add', (req, res) => {
   let inputData = req.body;
-  let inputDate = new Date(inputData.date)
+  let inputDate = inputData.date ? new Date(inputData.date): new Date();
 
   if(inputData.duration < 1) {
     res.send('duration too short');
   }
-  
-  User.findById(inputData.userId)
-      .select('-__v')
-      .exec((err, result) => {
-        if (err) {
-          console.log(err);
-        }
-        result.date = inputDate;
-        result.duration = Number(inputData.duration);
-        result.description = inputData.description;
 
-        result.save((error, doc) => {
-          if(error) {
-            console.log(error);
-          } else {
-            res.json(doc);
-          }
+  let addExercise = new Exercise({
+    date: inputDate.toDateString(),
+    duration: parseInt(inputData.duration),
+    description: inputData.description
+  })
+  
+  User.findByIdAndUpdate(
+    inputData.userId,
+    {$push: {log: addExercise}},
+    {new: true},
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.json({
+          _id: result._id,
+          username: result.username,
+          date: addExercise.date,
+          duration: addExercise.duration,
+          description: addExercise.description
         });
+      }
     });
 });
+
+app.get('/api/exercise/users', (req, res) => {
+  User.find({}, (error, users) => {
+    if(!error) {
+      res.json(users);
+    }
+  })
+})
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
