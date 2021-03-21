@@ -93,12 +93,55 @@ app.post('/api/exercise/add', (req, res) => {
 });
 
 app.get('/api/exercise/users', (req, res) => {
+
   User.find({}, (error, users) => {
     if(!error) {
       res.json(users);
     }
   })
 })
+
+app.get('/api/exercise/log', (req, res) => {
+
+  User.findById(req.query.userId, (error, result) => {
+    if(!error) {
+      let newDoc = {
+        _id: result._id,
+        username: result.username,
+        count: result.log.length,
+        log: result.log
+      }
+
+      if(req.query.from || req.query.to) {
+        let fromDate = new Date(0)
+        let toDate = new Date()
+
+        if(req.query.from) {
+          fromDate = new Date(req.query.from)
+        }
+
+        if(req.query.to) {
+          toDate = new Date(req.query.to)
+        }
+
+        newDoc.log = newDoc.log.filter(exercise => {
+          let unix = new Date(exercise.date).getTime()
+
+          return unix >= fromDate.getTime() && unix <= toDate.getTime()
+        })
+
+        newDoc.count = newDoc.log.length
+      }
+
+      if(req.query.limit) {
+        newDoc.log = newDoc.log.slice(0, req.query.limit);
+        newDoc.count = newDoc.log.length
+      }
+
+      res.json(newDoc);
+    }
+  });
+});
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
