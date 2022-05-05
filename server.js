@@ -5,7 +5,7 @@ require('dotenv').config()
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-mongoose.connect(process.env.BD_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(`mongodb+srv://simo-nkosi-practice:${process.env.KEY}@cluster0.6a0fj.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`, { useNewUrlParser: true, useUnifiedTopology: true });
 
 app.use(cors())
 app.use(express.static('public'))
