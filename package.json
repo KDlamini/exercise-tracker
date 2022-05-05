@@ -4,7 +4,8 @@
 	"description": "A REST API project, part of Free Code Camp's curriculum",
 	"main": "server.js",
 	"scripts": {
-		"start": "node server.js"
+		"start": "node server.js",
+		"web": "node server.js"
 	},
 	"dependencies": {
 		"cors": "^2.8.5",
